@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kamalesh S — Backend Software Engineer</title>
+  <meta name="description" content="Backend Software Engineer building scalable APIs, data pipelines, and developer tools." />
+
+  <!-- Tailwind CSS via CDN — no build step needed -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Configure Tailwind with custom theme values -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      '#0f1117',   /* page background */
+            surface: '#161b27',   /* card / nav background */
+            border:  '#1e2536',   /* subtle borders */
+            accent:  '#6366f1',   /* indigo primary accent */
+            'accent-hover': '#818cf8',
+            muted:   '#8892a4',   /* secondary text */
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Google Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Base ── */
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: #0f1117;
+      color: #e2e8f0;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Particle canvas sits behind everything ── */
+    #particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;   /* clicks pass through */
+      z-index: 0;
+    }
+
+    /* ── Everything above the canvas ── */
+    nav, main, footer { position: relative; z-index: 1; }
+
+    /* ── Typing cursor blink ── */
+    .cursor::after {
+      content: '|';
+      animation: blink 0.75s step-end infinite;
+      color: #6366f1;
+      margin-left: 2px;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Fade-in on scroll (initial state) ── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Card hover lift ── */
+    .card-lift {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15);
+    }
+
+    /* ── Nav link active indicator ── */
+    .nav-link {
+      position: relative;
+      color: #8892a4;
+      transition: color 0.2s;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 2px;
+      background: #6366f1;
+      transition: width 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: #e2e8f0;
+    }
+    .nav-link:hover::after, .nav-link.active::after {
+      width: 100%;
+    }
+
+    /* ── Skill pill ── */
+    .skill-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      background: #1e2536;
+      color: #a5b4fc;
+      border: 1px solid #2d3748;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .skill-pill:hover {
+      background: #2d3748;
+      border-color: #6366f1;
+    }
+
+    /* ── Timeline ── */
+    .timeline-line {
+      position: absolute;
+      left: 7px; top: 12px; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #6366f1, transparent);
+    }
+    .timeline-dot {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #6366f1;
+      border: 3px solid #0f1117;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ── Section title accent line ── */
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 48px; height: 3px;
+      background: #6366f1;
+      border-radius: 2px;
+      margin-top: 8px;
+    }
+
+    /* ── Gradient text for hero name ── */
+    .gradient-text {
+      background: linear-gradient(135deg, #6366f1 0%, #a78bfa 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PARTICLE CANVAS — animated background dots
+     Drawn by JS at the bottom of the file
+  ═══════════════════════════════════════════════════════════ -->
+<canvas id="particles"></canvas>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAVIGATION
+  ═══════════════════════════════════════════════════════════ -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
+  <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+
+    <!-- Logo / name mark -->
+    <a href="#hero" class="font-mono text-accent font-medium tracking-wide text-sm">
+      KS<span class="text-muted">.</span>
+    </a>
+
+    <!-- Desktop nav links -->
+    <ul class="hidden md:flex gap-8 text-sm">
+      <li><a href="#about"      class="nav-link">About</a></li>
+      <li><a href="#skills"     class="nav-link">Skills</a></li>
+      <li><a href="#projects"   class="nav-link">Projects</a></li>
+      <li><a href="#experience" class="nav-link">Experience</a></li>
+      <li><a href="#contact"    class="nav-link">Contact</a></li>
+    </ul>
+
+    <!-- CTA button -->
+    <a href="assets/resume.pdf" download
+       class="hidden md:inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white transition-colors">
+      Resume
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+      </svg>
+    </a>
+
+    <!-- Mobile hamburger (toggles #mobile-menu) -->
+    <button id="hamburger" class="md:hidden text-muted hover:text-white" aria-label="Open menu">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu (hidden by default) -->
+  <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 flex flex-col gap-4 text-sm border-t border-border bg-surface">
+    <a href="#about"      class="nav-link py-2">About</a>
+    <a href="#skills"     class="nav-link py-2">Skills</a>
+    <a href="#projects"   class="nav-link py-2">Projects</a>
+    <a href="#experience" class="nav-link py-2">Experience</a>
+    <a href="#contact"    class="nav-link py-2">Contact</a>
+    <a href="assets/resume.pdf" download class="text-accent font-medium py-2">Download Resume</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO SECTION
+  ═══════════════════════════════════════════════════════════ -->
+<section id="hero" class="min-h-screen flex items-center justify-center px-6 pt-20">
+  <div class="max-w-5xl mx-auto text-center">
+
+    <!-- Greeting line -->
+    <p class="font-mono text-accent text-sm mb-4 tracking-widest uppercase fade-in">
+      Hello, World!
+    </p>
+
+    <!-- Name -->
+    <h1 class="text-5xl md:text-7xl font-bold mb-6 fade-in gradient-text leading-tight">
+      Kamalesh S
+    </h1>
+
+    <!-- Animated role — text cycles via JS -->
+    <p class="text-xl md:text-2xl text-muted mb-8 h-8 fade-in">
+      <span id="typed-role" class="cursor text-white font-medium"></span>
+    </p>
+
+    <!-- Short tagline -->
+    <p class="text-muted max-w-xl mx-auto mb-12 leading-relaxed fade-in">
+      Building scalable APIs, data pipelines, and developer tools.<br/>
+      Currently at <span class="text-white font-medium">PrudentAI</span>.
+    </p>
+
+    <!-- CTA buttons -->
+    <div class="flex flex-wrap gap-4 justify-center fade-in">
+      <a href="#projects"
+         class="px-6 py-3 rounded-lg bg-accent hover:bg-accent-hover text-white font-medium transition-colors">
+        View Projects
+      </a>
+      <a href="#contact"
+         class="px-6 py-3 rounded-lg border border-border hover:border-accent text-muted hover:text-white transition-colors">
+        Get In Touch
+      </a>
+    </div>
+
+    <!-- Scroll hint arrow -->
+    <div class="mt-20 animate-bounce text-muted fade-in">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABOUT SECTION
+  ═══════════════════════════════════════════════════════════ -->
+<section id="about" class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+
+    <h2 class="text-3xl font-bold mb-12 section-title fade-in">About</h2>
+
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+
+      <!-- Bio text -->
+      <div class="fade-in">
+        <p class="text-muted leading-relaxed mb-6">
+          Backend Software Engineer with hands-on experience building scalable APIs,
+          automating data workflows, and optimizing system performance across diverse
+          tech stacks. Adaptable and solution-oriented, with a strong focus on writing
+          clean, maintainable code.
+        </p>
+        <p class="text-muted leading-relaxed">
+          Proven ability to thrive in fast-paced, collaborative environments and deliver
+          high-quality results under pressure. Passionate about open source, developer
+          tooling, and infrastructure that scales.
+        </p>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="grid grid-cols-2 gap-4 fade-in">
+
+        <div class="bg-surface border border-border rounded-xl p-5 card-lift">
+          <p class="text-3xl font-bold text-accent mb-1">6+</p>
+          <p class="text-muted text-sm">Companies worked with</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5 card-lift">
+          <p class="text-3xl font-bold text-accent mb-1">10+</p>
+          <p class="text-muted text-sm">Public repositories</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5 card-lift">
+          <p class="text-3xl font-bold text-accent mb-1">95%</p>
+          <p class="text-muted text-sm">Coverage on ML tagging models</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5 card-lift">
+          <p class="text-3xl font-bold text-accent mb-1">5×</p>
+          <p class="text-muted text-sm">Faster CI/CD pipeline</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SKILLS SECTION
+  ═══════════════════════════════════════════════════════════ -->
+<section id="skills" class="py-24 px-6 bg-surface/40">
+  <div class="max-w-5xl mx-auto">
+
+    <h2 class="text-3xl font-bold mb-12 section-title fade-in">Skills</h2>
+
+    <div class="grid md:grid-cols-2 gap-8">
+
+      <!-- Languages -->
+      <div class="fade-in">
+        <h3 class="text-xs font-mono text-accent uppercase tracking-widest mb-4">Languages</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-pill">Python</span>
+          <span class="skill-pill">C++</span>
+          <span class="skill-pill">Java</span>
+          <span class="skill-pill">JavaScript</span>
+          <span class="skill-pill">TypeScript</span>
+        </div>
+      </div>
+
+      <!-- Frameworks & Tools -->
+      <div class="fade-in">
+        <h3 class="text-xs font-mono text-accent uppercase tracking-widest mb-4">Frameworks &amp; Tools</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-pill">FastAPI</span>
+          <span class="skill-pill">Django</span>
+          <span class="skill-pill">Flask</span>
+          <span class="skill-pill">Node.js</span>
+          <span class="skill-pill">Express.js</span>
+          <span class="skill-pill">Selenium</span>
+        </div>
+      </div>
+
+      <!-- DevOps -->
+      <div class="fade-in">
+        <h3 class="text-xs font-mono text-accent uppercase tracking-widest mb-4">DevOps &amp; Cloud</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-pill">Docker</span>
+          <span class="skill-pill">Kubernetes</span>
+          <span class="skill-pill">GitHub Actions</span>
+          <span class="skill-pill">GCP</span>
+          <span class="skill-pill">AWS</span>
+          <span class="skill-pill">WireGuard</span>
+          <span class="skill-pill">CI/CD</span>
+        </div>
+      </div>
+
+      <!-- Databases -->
+      <div class="fade-in">
+        <h3 class="text-xs font-mono text-accent uppercase tracking-widest mb-4">Databases</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-pill">PostgreSQL</span>
+          <span class="skill-pill">MongoDB</span>
+          <span class="skill-pill">MySQL</span>
+          <span class="skill-pill">Elasticsearch</span>
+        </div>
+      </div>
+
+      <!-- Frontend -->
+      <div class="fade-in">
+        <h3 class="text-xs font-mono text-accent uppercase tracking-widest mb-4">Frontend</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-pill">Angular</span>
+          <span class="skill-pill">HTML/CSS</span>
+          <span class="skill-pill">EJS</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PROJECTS SECTION
+     Top 3 are hardcoded featured cards.
+     Remaining public repos are fetched live from GitHub API.
+  ═══════════════════════════════════════════════════════════ -->
+<section id="projects" class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+
+    <h2 class="text-3xl font-bold mb-4 section-title fade-in">Projects</h2>
+    <p class="text-muted mb-12 fade-in">Featured work + public repositories from GitHub.</p>
+
+    <!-- ── Featured 3 (hardcoded) ── -->
+    <div class="grid md:grid-cols-3 gap-6 mb-16">
+
+      <!-- contrib-compass -->
+      <a href="https://github.com/Kamalesh-Kavin/contrib-compass" target="_blank" rel="noopener"
+         class="bg-surface border border-border rounded-xl p-6 card-lift fade-in flex flex-col gap-4 group">
+        <div class="flex items-center justify-between">
+          <!-- folder icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+          </svg>
+          <!-- external link icon (shows on hover) -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white mb-2">contrib-compass</h3>
+          <p class="text-muted text-sm leading-relaxed">
+            Open source contribution finder — semantic search over GitHub issues and Up For Grabs listings using sentence-transformers and FastAPI.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-auto">
+          <span class="skill-pill">Python</span>
+          <span class="skill-pill">FastAPI</span>
+          <span class="skill-pill">NLP</span>
+        </div>
+      </a>
+
+      <!-- pgstream -->
+      <a href="https://github.com/Kamalesh-Kavin/pgstream" target="_blank" rel="noopener"
+         class="bg-surface border border-border rounded-xl p-6 card-lift fade-in flex flex-col gap-4 group">
+        <div class="flex items-center justify-between">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white mb-2">pgstream</h3>
+          <p class="text-muted text-sm leading-relaxed">
+            Python SDK for Postgres CDC — stream WAL changes to vector stores (pgvector, Qdrant) in real time. ★1
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-auto">
+          <span class="skill-pill">Python</span>
+          <span class="skill-pill">PostgreSQL</span>
+          <span class="skill-pill">CDC</span>
+        </div>
+      </a>
+
+      <!-- rag-mcp -->
+      <a href="https://github.com/Kamalesh-Kavin/rag-mcp" target="_blank" rel="noopener"
+         class="bg-surface border border-border rounded-xl p-6 card-lift fade-in flex flex-col gap-4 group">
+        <div class="flex items-center justify-between">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white mb-2">rag-mcp</h3>
+          <p class="text-muted text-sm leading-relaxed">
+            Personal knowledge base MCP server — index PDFs, Markdown, and code; ask Claude questions using local Ollama embeddings and ChromaDB.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-auto">
+          <span class="skill-pill">Python</span>
+          <span class="skill-pill">RAG</span>
+          <span class="skill-pill">LLM</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ── More repos fetched from GitHub API ── -->
+    <h3 class="text-lg font-semibold text-white mb-6 fade-in">More on GitHub</h3>
+    <div id="github-repos" class="grid md:grid-cols-3 gap-4">
+      <!-- Populated by JS below -->
+      <p class="text-muted text-sm col-span-3" id="repos-loading">Loading repositories…</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     EXPERIENCE SECTION — vertical timeline, newest first
+  ═══════════════════════════════════════════════════════════ -->
+<section id="experience" class="py-24 px-6 bg-surface/40">
+  <div class="max-w-5xl mx-auto">
+
+    <h2 class="text-3xl font-bold mb-12 section-title fade-in">Experience</h2>
+
+    <div class="relative pl-8">
+      <!-- Vertical gradient line running down the left -->
+      <div class="timeline-line"></div>
+
+      <!-- ── PrudentAI ── -->
+      <div class="relative flex gap-4 mb-12 fade-in">
+        <div class="timeline-dot absolute -left-1.5 mt-1.5"></div>
+        <div class="bg-surface border border-border rounded-xl p-6 flex-1 card-lift">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-semibold text-white">Junior Product Engineer</h3>
+              <p class="text-accent text-sm font-medium">PrudentAI</p>
+            </div>
+            <span class="text-xs font-mono text-muted bg-bg px-3 py-1 rounded-full border border-border">Jun 2025 – Present</span>
+          </div>
+          <ul class="text-muted text-sm space-y-2 list-none">
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Led Fannie Mae integration, expanding coverage from non-agency to agency mortgages (~95% of the US market).</li>
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Optimised CI/CD pipeline from 10 min down to under 2 min — 5× speedup.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── KorrAI ── -->
+      <div class="relative flex gap-4 mb-12 fade-in">
+        <div class="timeline-dot absolute -left-1.5 mt-1.5"></div>
+        <div class="bg-surface border border-border rounded-xl p-6 flex-1 card-lift">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-semibold text-white">Software Engineer</h3>
+              <p class="text-accent text-sm font-medium">KorrAI <span class="text-muted font-normal">(Y Combinator-backed)</span></p>
+            </div>
+            <span class="text-xs font-mono text-muted bg-bg px-3 py-1 rounded-full border border-border">Oct 2024 – Jun 2025</span>
+          </div>
+          <ul class="text-muted text-sm space-y-2">
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Built backend pipelines processing terabytes of satellite data; achieved 30–40% performance improvement.</li>
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Automated preprocessing workflows — reduced turnaround from 1–2 days to 3–4 hours.</li>
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Containerised services and managed deployments on GCP.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── HappyFox ── -->
+      <div class="relative flex gap-4 mb-12 fade-in">
+        <div class="timeline-dot absolute -left-1.5 mt-1.5"></div>
+        <div class="bg-surface border border-border rounded-xl p-6 flex-1 card-lift">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-semibold text-white">Backend Developer Intern</h3>
+              <p class="text-accent text-sm font-medium">HappyFox</p>
+            </div>
+            <span class="text-xs font-mono text-muted bg-bg px-3 py-1 rounded-full border border-border">Aug 2024 – Oct 2024</span>
+          </div>
+          <ul class="text-muted text-sm space-y-2">
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Built Django RESTful APIs and developed 4+ third-party extensions for HappyFox Workflows.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── Mad Street Den ── -->
+      <div class="relative flex gap-4 mb-12 fade-in">
+        <div class="timeline-dot absolute -left-1.5 mt-1.5"></div>
+        <div class="bg-surface border border-border rounded-xl p-6 flex-1 card-lift">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-semibold text-white">Backend Developer Intern</h3>
+              <p class="text-accent text-sm font-medium">Mad Street Den</p>
+            </div>
+            <span class="text-xs font-mono text-muted bg-bg px-3 py-1 rounded-full border border-border">Dec 2023 – Jul 2024</span>
+          </div>
+          <ul class="text-muted text-sm space-y-2">
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Built ML text tagging models achieving 95% coverage; revamped Docker images for efficiency.</li>
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Wrote Selenium test scripts — reduced QA time from 1 week to 2 hours.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── Gulf Engineering Consultancy ── -->
+      <div class="relative flex gap-4 mb-12 fade-in">
+        <div class="timeline-dot absolute -left-1.5 mt-1.5"></div>
+        <div class="bg-surface border border-border rounded-xl p-6 flex-1 card-lift">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-semibold text-white">Backend Developer</h3>
+              <p class="text-accent text-sm font-medium">Gulf Engineering Consultancy <span class="text-muted font-normal">(LVMH client)</span></p>
+            </div>
+            <span class="text-xs font-mono text-muted bg-bg px-3 py-1 rounded-full border border-border">Oct 2022 – Nov 2022</span>
+          </div>
+          <ul class="text-muted text-sm space-y-2">
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Automated support workflows — reduced resolution time from 3–4 hours to 10–15 minutes.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── Imprzd ── -->
+      <div class="relative flex gap-4 fade-in">
+        <div class="timeline-dot absolute -left-1.5 mt-1.5"></div>
+        <div class="bg-surface border border-border rounded-xl p-6 flex-1 card-lift">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="font-semibold text-white">Software Engineer Intern</h3>
+              <p class="text-accent text-sm font-medium">Imprzd</p>
+            </div>
+            <span class="text-xs font-mono text-muted bg-bg px-3 py-1 rounded-full border border-border">Aug 2022 – Aug 2023</span>
+          </div>
+          <ul class="text-muted text-sm space-y-2">
+            <li class="flex gap-2"><span class="text-accent mt-1">▸</span>Built MERN stack backend and student portal across multiple internship stints.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONTACT SECTION
+  ═══════════════════════════════════════════════════════════ -->
+<section id="contact" class="py-24 px-6">
+  <div class="max-w-5xl mx-auto text-center">
+
+    <h2 class="text-3xl font-bold mb-4 section-title fade-in inline-block">Get In Touch</h2>
+    <p class="text-muted mt-8 mb-12 max-w-lg mx-auto fade-in">
+      Open to backend, infrastructure, and full-stack roles. Drop a message or connect on any of the links below.
+    </p>
+
+    <!-- Contact links -->
+    <div class="flex flex-wrap justify-center gap-4 fade-in">
+
+      <!-- Email -->
+      <a href="mailto:kamalesh.s7316@gmail.com"
+         class="flex items-center gap-3 px-5 py-3 rounded-lg bg-surface border border-border hover:border-accent text-muted hover:text-white transition-colors card-lift">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        Email
+      </a>
+
+      <!-- GitHub -->
+      <a href="https://github.com/Kamalesh-Kavin" target="_blank" rel="noopener"
+         class="flex items-center gap-3 px-5 py-3 rounded-lg bg-surface border border-border hover:border-accent text-muted hover:text-white transition-colors card-lift">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.29 9.42 7.86 10.95.57.1.78-.25.78-.55v-1.93c-3.19.69-3.86-1.54-3.86-1.54-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.27-5.23-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.93 10.93 0 012.87-.39c.97 0 1.95.13 2.87.39 2.18-1.49 3.14-1.18 3.14-1.18.63 1.58.23 2.75.11 3.04.74.8 1.18 1.82 1.18 3.07 0 4.4-2.68 5.37-5.24 5.65.41.36.78 1.06.78 2.13v3.16c0 .3.2.66.79.55C20.21 21.42 23.5 17.1 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        GitHub
+      </a>
+
+      <!-- LinkedIn -->
+      <a href="https://www.linkedin.com/in/kamalesh-somasundaram" target="_blank" rel="noopener"
+         class="flex items-center gap-3 px-5 py-3 rounded-lg bg-surface border border-border hover:border-accent text-muted hover:text-white transition-colors card-lift">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.37V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zm1.78 13.02H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.21 0 22.23 0z"/>
+        </svg>
+        LinkedIn
+      </a>
+
+      <!-- Resume download -->
+      <a href="assets/resume.pdf" download
+         class="flex items-center gap-3 px-5 py-3 rounded-lg bg-accent hover:bg-accent-hover text-white font-medium transition-colors card-lift">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Download Resume
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+  ═══════════════════════════════════════════════════════════ -->
+<footer class="py-8 px-6 border-t border-border text-center text-muted text-sm">
+  <p>Built with HTML, Tailwind CSS, and vanilla JS — no build step.</p>
+  <p class="mt-1">
+    <a href="https://github.com/Kamalesh-Kavin/Kamalesh-Kavin.github.io" target="_blank" rel="noopener" class="hover:text-accent transition-colors">
+      View source on GitHub
+    </a>
+  </p>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT — all animations, interactions, data fetching
+  ═══════════════════════════════════════════════════════════ -->
+<script>
+// ── 1. PARTICLE CANVAS ──────────────────────────────────────
+(function () {
+  const canvas = document.getElementById('particles');
+  const ctx    = canvas.getContext('2d');
+
+  // Particle configuration
+  const PARTICLE_COUNT = 80;
+  const MAX_DISTANCE   = 120;  // px — max distance to draw connecting lines
+  const SPEED          = 0.3;
+  const PARTICLE_COLOR = '99, 102, 241'; // indigo in RGB
+
+  let W, H, particles;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  // Each particle has a position, velocity, and radius
+  function createParticle() {
+    return {
+      x:  Math.random() * W,
+      y:  Math.random() * H,
+      vx: (Math.random() - 0.5) * SPEED,
+      vy: (Math.random() - 0.5) * SPEED,
+      r:  Math.random() * 1.5 + 0.5,
+    };
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: PARTICLE_COUNT }, createParticle);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Move and draw each particle
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      // Wrap around edges
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${PARTICLE_COLOR}, 0.6)`;
+      ctx.fill();
+    }
+
+    // Draw lines between nearby particles
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx   = particles[i].x - particles[j].x;
+        const dy   = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MAX_DISTANCE) {
+          const alpha = 1 - dist / MAX_DISTANCE; // fade out with distance
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(${PARTICLE_COLOR}, ${alpha * 0.25})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  draw();
+})();
+
+
+// ── 2. TYPING EFFECT ────────────────────────────────────────
+(function () {
+  const roles = [
+    'Backend Software Engineer',
+    'API Architect',
+    'Open Source Contributor',
+    'Data Pipeline Builder',
+  ];
+  const el    = document.getElementById('typed-role');
+  let roleIdx = 0;
+  let charIdx = 0;
+  let deleting = false;
+  const TYPING_SPEED   = 80;   // ms per character while typing
+  const DELETING_SPEED = 40;   // ms per character while deleting
+  const PAUSE_END      = 1800; // ms pause at end of word
+  const PAUSE_START    = 300;  // ms pause before retyping
+
+  function tick() {
+    const current = roles[roleIdx];
+
+    if (!deleting) {
+      // Add one character
+      charIdx++;
+      el.textContent = current.slice(0, charIdx);
+      if (charIdx === current.length) {
+        // Reached end — pause then start deleting
+        deleting = true;
+        setTimeout(tick, PAUSE_END);
+        return;
+      }
+      setTimeout(tick, TYPING_SPEED);
+    } else {
+      // Remove one character
+      charIdx--;
+      el.textContent = current.slice(0, charIdx);
+      if (charIdx === 0) {
+        // Fully deleted — move to next role
+        deleting = false;
+        roleIdx  = (roleIdx + 1) % roles.length;
+        setTimeout(tick, PAUSE_START);
+        return;
+      }
+      setTimeout(tick, DELETING_SPEED);
+    }
+  }
+
+  setTimeout(tick, 600); // initial delay before typing starts
+})();
+
+
+// ── 3. INTERSECTION OBSERVER — fade-in on scroll ────────────
+(function () {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Unobserve after animating so it doesn't re-trigger
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  // Observe every element with .fade-in class
+  document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+})();
+
+
+// ── 4. ACTIVE NAV LINK on scroll ────────────────────────────
+(function () {
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          links.forEach((l) => l.classList.remove('active'));
+          const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    },
+    { rootMargin: '-40% 0px -55% 0px' } // trigger when section is roughly centered in viewport
+  );
+
+  sections.forEach((s) => observer.observe(s));
+})();
+
+
+// ── 5. MOBILE HAMBURGER MENU ────────────────────────────────
+(function () {
+  const btn  = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+
+  btn.addEventListener('click', () => {
+    menu.classList.toggle('hidden');
+  });
+
+  // Close menu when a link inside it is clicked
+  menu.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => menu.classList.add('hidden'));
+  });
+})();
+
+
+// ── 6. GITHUB REPOS — dynamic cards below featured projects ─
+(function () {
+  // These repos are already shown in the featured section — skip them
+  const FEATURED = new Set(['contrib-compass', 'pgstream', 'rag-mcp']);
+  // Skip forks/old misc repos that don't add signal
+  const SKIP = new Set([
+    'DSA', 'Calendar_gen', 'Make_a_Thon', 'First_AI_Project',
+    'Snake_game', 'traffic_ticket-master', 'Library-management-python',
+    'Library-management', 'student_allocation', 'Kamalesh-Kavin.github.io',
+    'Metrolist', 'handwritten_text_detection_and_recognition',
+    'Handwritten-OCR-with-Plagiarism-Check', 'Plagiarism-checker-for-n-handwritten-docs',
+    'Music-application',
+  ]);
+
+  const container = document.getElementById('github-repos');
+  const loading   = document.getElementById('repos-loading');
+
+  fetch('https://api.github.com/users/Kamalesh-Kavin/repos?sort=updated&per_page=30')
+    .then((r) => r.json())
+    .then((repos) => {
+      loading.remove();
+
+      const filtered = repos.filter(
+        (r) => !FEATURED.has(r.name) && !SKIP.has(r.name) && !r.fork
+      );
+
+      if (!filtered.length) {
+        container.innerHTML = '<p class="text-muted text-sm col-span-3">No additional repositories found.</p>';
+        return;
+      }
+
+      filtered.forEach((repo) => {
+        const card = document.createElement('a');
+        card.href   = repo.html_url;
+        card.target = '_blank';
+        card.rel    = 'noopener';
+        card.className =
+          'bg-surface border border-border rounded-xl p-5 card-lift fade-in flex flex-col gap-3 group';
+
+        // Language badge colour mapping
+        const langColor = {
+          Python: '#3572A5', JavaScript: '#f1e05a', TypeScript: '#2b7489',
+          Kotlin: '#A97BFF', Java: '#b07219',
+        };
+        const lang  = repo.language || '';
+        const color = langColor[lang] || '#6366f1';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <h4 class="font-medium text-white text-sm leading-tight">${repo.name}</h4>
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-4 h-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </div>
+          <p class="text-muted text-xs leading-relaxed flex-1">
+            ${repo.description || 'No description provided.'}
+          </p>
+          <div class="flex items-center gap-4 text-xs text-muted">
+            ${lang ? `<span class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full" style="background:${color}"></span>${lang}
+            </span>` : ''}
+            ${repo.stargazers_count ? `<span>★ ${repo.stargazers_count}</span>` : ''}
+          </div>
+        `;
+
+        // Observe newly created card for fade-in
+        container.appendChild(card);
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+          });
+        }, { threshold: 0.1 });
+        observer.observe(card);
+      });
+    })
+    .catch(() => {
+      loading.textContent = 'Could not load repositories. Visit GitHub directly.';
+    });
+})();
+</script>
+
+</body>
+</html>
+
